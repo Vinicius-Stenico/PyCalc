@@ -4,8 +4,6 @@ from pathlib import Path
 from menu_lateral import MenuLateral
 from modos.padrao import CalculadoraPadrao
 from modos.cientifica import CalculadoraCientifica
-from modos.data import CalculadoraData
-from modos.programador import CalculadoraProgramador
 from tema import Tema
 
 
@@ -30,25 +28,20 @@ class Calculadora(tk.Frame):
 
         self.nome_modo_atual = "Padrão"
         self.modo_atual: tk.Frame | None = None
-        self.instancias_modos: dict[str, tk.Frame] = {}
 
         # Relaciona o nome exibido no menu à classe responsável pelo modo.
         # Novos modos devem ser adicionados aqui quando forem implementados.
         self.modos_disponiveis: dict[str, type[tk.Frame]] = {
             "Padrão": CalculadoraPadrao,
             "Científica": CalculadoraCientifica,
-            "Programador": CalculadoraProgramador,
-            "Cálculo de data": CalculadoraData,
         }
 
         self._configurar_interacao_botoes()
-        self._configurar_atalhos_teclado()
         self._configurar_layout()
         self._criar_topo()
         self._criar_area_modo()
         self._criar_menu_lateral()
 
-        self._precarregar_modos()
         self._carregar_modo("Padrão")
 
     # ==========================================================
@@ -73,56 +66,6 @@ class Calculadora(tk.Frame):
             "<Leave>",
             self._ao_sair_botao,
             add="+",
-        )
-
-    def _configurar_atalhos_teclado(self) -> None:
-        """Encaminha teclas ao modo aberto no momento."""
-        self.master.bind_all("<KeyPress>", self._ao_pressionar_tecla)
-
-    def _ao_pressionar_tecla(self, evento: tk.Event) -> str | None:
-        if self._tratar_atalho_modo(evento):
-            return "break"
-
-        if self.modo_atual is None:
-            return None
-
-        processar_tecla = getattr(
-            self.modo_atual,
-            "processar_tecla",
-            None,
-        )
-
-        if callable(processar_tecla):
-            return processar_tecla(evento)
-
-        return None
-
-    def _tratar_atalho_modo(self, evento: tk.Event) -> bool:
-        if not self._ctrl_alt_pressionados(evento):
-            return False
-
-        if self._foco_esta_no_visor():
-            return False
-
-        if evento.keysym in {"1", "KP_1"}:
-            self.selecionar_modo("Padrão")
-            return True
-
-        if evento.keysym in {"2", "KP_2"}:
-            self.selecionar_modo("Científica")
-            return True
-
-        return False
-
-    @staticmethod
-    def _ctrl_alt_pressionados(evento: tk.Event) -> bool:
-        return bool(evento.state & 0x0004 and evento.state & 0x0008)
-
-    def _foco_esta_no_visor(self) -> bool:
-        widget_focado = self.master.focus_get()
-        return (
-            self.modo_atual is not None
-            and widget_focado == getattr(self.modo_atual, "visor", None)
         )
 
     def _ao_entrar_botao(self, evento: tk.Event) -> None:
@@ -241,7 +184,7 @@ class Calculadora(tk.Frame):
             column=1,
             sticky="w",
         )
-        self.botao_historico = tk.Button(
+        botao_historico = tk.Button(
             frame_topo,
             text="↺",
             bg=Tema.COR_TOPO,
@@ -255,7 +198,7 @@ class Calculadora(tk.Frame):
             cursor="hand2",
             command=self._alternar_historico,
         )
-        self.botao_historico.grid(
+        botao_historico.grid(
             row=0,
             column=2,
             sticky="e",
@@ -298,9 +241,6 @@ class Calculadora(tk.Frame):
         if self.modo_atual is None:
             return
 
-        if not hasattr(self.modo_atual, "historico"):
-            return
-
         alternar_historico = getattr(
             self.modo_atual,
             "alternar_historico",
@@ -327,55 +267,21 @@ class Calculadora(tk.Frame):
     # TROCA DE MODOS
     # ==========================================================
 
-    def _precarregar_modos(self) -> None:
-        """Cria todos os modos antes da primeira troca visível."""
-        for nome_modo, classe_modo in self.modos_disponiveis.items():
-            modo = classe_modo(self.area_modo)
-            modo.grid(
-                row=0,
-                column=0,
-                sticky="nsew",
-            )
-            self.instancias_modos[nome_modo] = modo
-
-        self.area_modo.update_idletasks()
-
     def _carregar_modo(self, nome_modo: str) -> None:
-        """Mostra o modo solicitado sem reconstruir o layout a cada troca."""
-        self._fechar_paineis_modo_atual()
+        """Remove o modo anterior e cria o modo solicitado."""
+        classe_modo = self.modos_disponiveis[nome_modo]
 
-        self.modo_atual = self.instancias_modos[nome_modo]
-        self.modo_atual.tkraise()
+        self._destruir_modo_atual()
+
+        self.modo_atual = classe_modo(self.area_modo)
+        self.modo_atual.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+        )
 
         self.nome_modo_atual = nome_modo
         self.label_modo.config(text=nome_modo)
-        self._atualizar_botao_historico()
-        self._focar_visor_modo_atual()
-
-    def _atualizar_botao_historico(self) -> None:
-        if not hasattr(self, "botao_historico"):
-            return
-
-        if (
-            self.modo_atual is not None
-            and hasattr(self.modo_atual, "historico")
-        ):
-            self.botao_historico.grid()
-        else:
-            self.botao_historico.grid_remove()
-
-    def _focar_visor_modo_atual(self) -> None:
-        if self.modo_atual is None:
-            return
-
-        focar_visor = getattr(
-            self.modo_atual,
-            "_focar_visor_para_teclado",
-            None,
-        )
-
-        if callable(focar_visor):
-            self.after_idle(focar_visor)
 
     def _destruir_modo_atual(self) -> None:
         """Fecha os painéis e remove o modo que está sendo exibido."""
@@ -385,9 +291,9 @@ class Calculadora(tk.Frame):
             self.modo_atual is not None
             and self.modo_atual.winfo_exists()
         ):
-            return
+            self.modo_atual.destroy()
 
-        return
+        self.modo_atual = None
 
     def _fechar_paineis_modo_atual(self) -> None:
         """
