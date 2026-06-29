@@ -353,6 +353,7 @@ Cada modo pode possuir sua própria interface e lógica, enquanto recursos compa
 * [x] Estrutura modular inicial
 * [x] Modo de calculadora padrão
 * [x] Modo de calculadora científico
+* [x] Modo programador
 * [x] Modo de calculadora de datas
 * [x] Operações matemáticas básicas
 * [x] Operações adicionais do modo padrão
@@ -365,7 +366,6 @@ Cada modo pode possuir sua própria interface e lógica, enquanto recursos compa
 
 ### Em desenvolvimento ou planejado
 
-* [ ] Adicionar modo programador
 * [ ] Adicionar conversores de unidades
 * [ ] Melhorar o histórico de cálculos
 * [ ] Aprimorar os atalhos de teclado
