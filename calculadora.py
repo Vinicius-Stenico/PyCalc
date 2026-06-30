@@ -5,6 +5,7 @@ from menu_lateral import MenuLateral
 from modos.padrao import CalculadoraPadrao
 from modos.cientifica import CalculadoraCientifica
 from modos.data import CalculadoraData
+from modos.moeda import CalculadoraMoeda
 from modos.programador import CalculadoraProgramador
 from tema import Tema
 
@@ -39,6 +40,7 @@ class Calculadora(tk.Frame):
             "Científica": CalculadoraCientifica,
             "Programador": CalculadoraProgramador,
             "Cálculo de data": CalculadoraData,
+            "Moeda": CalculadoraMoeda,
         }
 
         self._configurar_interacao_botoes()
@@ -350,7 +352,16 @@ class Calculadora(tk.Frame):
         self.nome_modo_atual = nome_modo
         self.label_modo.config(text=nome_modo)
         self._atualizar_botao_historico()
+        self._notificar_modo_exibido()
         self._focar_visor_modo_atual()
+
+    def _notificar_modo_exibido(self) -> None:
+        if self.modo_atual is None:
+            return
+
+        ao_exibir = getattr(self.modo_atual, "ao_exibir", None)
+        if callable(ao_exibir):
+            ao_exibir()
 
     def _atualizar_botao_historico(self) -> None:
         if not hasattr(self, "botao_historico"):
