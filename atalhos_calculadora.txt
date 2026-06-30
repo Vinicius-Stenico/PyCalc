@@ -1,0 +1,71 @@
+Atalhos atuais da calculadora
+=============================
+
+Observacao geral
+----------------
+Numeros, operadores e atalhos funcionam mesmo sem clicar no visor.
+Quando o visor esta focado e existe cursor/selecao, as teclas editam o
+numero diretamente. Quando o foco esta em outro componente, as teclas agem
+como botoes da calculadora.
+
+Entrada e edicao do visor
+-------------------------
+0-9                  Digita numeros no visor
+. ou ,               Insere separador decimal
+Backspace            Apaga o digito anterior ou a selecao do visor
+Delete               Apaga a selecao do visor; sem selecao, executa CE
+Ctrl+Backspace       Executa CE
+Ctrl+Delete          Executa CE
+Ctrl+A               Seleciona todo o numero do visor
+Ctrl+C               Copia o valor do visor
+Ctrl+V               Cola um numero no visor
+Ctrl+X               Copia o valor do visor e limpa a entrada
+Setas/Home/End       Navegam dentro do visor quando ele esta focado
+
+Operacoes principais
+--------------------
++                    Soma
+-                    Subtracao
+* ou X               Multiplicacao
+/                    Divisao
+= ou Enter           Resultado
+%                    Porcentagem
+Esc                  Limpa tudo (C)
+F9                   Troca o sinal (+/-)
+R                    Reciproco (1/x)
+@                    Raiz quadrada
+Q                    Quadrado (x2)
+
+Memoria e historico
+-------------------
+Ctrl+M               MS - salva na memoria
+Ctrl+R               MR - recupera memoria
+Ctrl+L               MC - limpa memoria
+Ctrl+P               M+ - soma na memoria
+Ctrl+Q               M- - subtrai da memoria
+Ctrl+H               Abre/fecha historico
+Ctrl+Shift+D         Limpa historico
+
+Modos
+-----
+Ctrl+Alt+1           Modo Padrao, quando o foco nao esta no visor
+Ctrl+Alt+2           Modo Cientifica, quando o foco nao esta no visor
+F3                   DEG no modo Cientifica
+F4                   RAD no modo Cientifica
+F5                   GRAD no modo Cientifica
+
+Atalhos do Windows Calculator sem equivalente neste projeto
+===========================================================
+Alt+1                Modo Padrao do Windows Calculator
+Alt+2                Modo Cientifica do Windows Calculator
+Alt+3                Modo Grafico
+Alt+4                Modo Programador
+Alt+5                Calculo de datas
+Ctrl+E               Calculo de datas
+Ctrl+U               Conversor de unidades
+Ctrl+F4              Fecha planilhas/conversores do Windows Calculator
+Ctrl+Tab             Alterna entre planilhas/conversores do Windows Calculator
+
+Estes atalhos ficaram sem equivalente direto porque o projeto prioriza a
+digitacao numerica sem conflito, ou porque as telas correspondentes ainda
+nao existem neste aplicativo.
