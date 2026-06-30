@@ -6,7 +6,20 @@ from modos.padrao import CalculadoraPadrao
 from modos.cientifica import CalculadoraCientifica
 from modos.data import CalculadoraData
 from modos.moeda import CalculadoraMoeda
+from modos.volume import CalculadoraVolume
+from modos.comprimento import CalculadoraComprimento
+from modos.peso_e_massa import CalculadoraPesoEMassa
+from modos.temperatura import CalculadoraTemperatura
+from modos.energia import CalculadoraEnergia
+from modos.area import CalculadoraArea
+from modos.velocidade import CalculadoraVelocidade
+from modos.tempo import CalculadoraTempo
+from modos.potencia import CalculadoraPotencia
+from modos.dados import CalculadoraDados
+from modos.pressao import CalculadoraPressao
+from modos.angulo import CalculadoraAngulo
 from modos.programador import CalculadoraProgramador
+from modos.representacao_grafica import CalculadoraRepresentacaoGrafica
 from tema import Tema
 
 
@@ -38,9 +51,22 @@ class Calculadora(tk.Frame):
         self.modos_disponiveis: dict[str, type[tk.Frame]] = {
             "Padrão": CalculadoraPadrao,
             "Científica": CalculadoraCientifica,
+            "Representação gráfica": CalculadoraRepresentacaoGrafica,
             "Programador": CalculadoraProgramador,
             "Cálculo de data": CalculadoraData,
             "Moeda": CalculadoraMoeda,
+            "Volume": CalculadoraVolume,
+            "Comprimento": CalculadoraComprimento,
+            "Peso e massa": CalculadoraPesoEMassa,
+            "Temperatura": CalculadoraTemperatura,
+            "Energia": CalculadoraEnergia,
+            "Área": CalculadoraArea,
+            "Velocidade": CalculadoraVelocidade,
+            "Tempo": CalculadoraTempo,
+            "Potência": CalculadoraPotencia,
+            "Dados": CalculadoraDados,
+            "Pressão": CalculadoraPressao,
+            "Ângulo": CalculadoraAngulo,
         }
 
         self._configurar_interacao_botoes()
@@ -209,6 +235,7 @@ class Calculadora(tk.Frame):
         frame_topo.columnconfigure(0, weight=0)
         frame_topo.columnconfigure(1, weight=1)
         frame_topo.columnconfigure(2, weight=0)
+        frame_topo.columnconfigure(3, weight=0)
 
         botao_menu = tk.Button(
             frame_topo,
@@ -243,6 +270,18 @@ class Calculadora(tk.Frame):
             column=1,
             sticky="w",
         )
+
+        self.frame_acoes_modo = tk.Frame(
+            frame_topo,
+            bg=Tema.COR_TOPO,
+        )
+        self.frame_acoes_modo.grid(
+            row=0,
+            column=2,
+            sticky="e",
+            padx=(4, 4),
+        )
+
         self.botao_historico = tk.Button(
             frame_topo,
             text="↺",
@@ -259,7 +298,7 @@ class Calculadora(tk.Frame):
         )
         self.botao_historico.grid(
             row=0,
-            column=2,
+            column=3,
             sticky="e",
         )
 
@@ -351,6 +390,7 @@ class Calculadora(tk.Frame):
 
         self.nome_modo_atual = nome_modo
         self.label_modo.config(text=nome_modo)
+        self._atualizar_acoes_modo()
         self._atualizar_botao_historico()
         self._notificar_modo_exibido()
         self._focar_visor_modo_atual()
@@ -374,6 +414,25 @@ class Calculadora(tk.Frame):
             self.botao_historico.grid()
         else:
             self.botao_historico.grid_remove()
+
+    def _atualizar_acoes_modo(self) -> None:
+        if not hasattr(self, "frame_acoes_modo"):
+            return
+
+        for filho in self.frame_acoes_modo.winfo_children():
+            filho.destroy()
+
+        if self.modo_atual is None:
+            return
+
+        criar_acoes_topo = getattr(
+            self.modo_atual,
+            "criar_acoes_topo",
+            None,
+        )
+
+        if callable(criar_acoes_topo):
+            criar_acoes_topo(self.frame_acoes_modo)
 
     def _focar_visor_modo_atual(self) -> None:
         if self.modo_atual is None:

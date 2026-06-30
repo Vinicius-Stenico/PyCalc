@@ -10,6 +10,24 @@ class Tema:
     COR_BOTAO_IGUAL = "#4cc2ff"
     COR_BOTAO_IGUAL_HOVER = "#65ccff"
 
+    # Gráfico
+    COR_GRAFICO_FUNDO = "#ffffff"
+    COR_GRAFICO_GRADE = "#dddddd"
+    COR_GRAFICO_EIXO = "#666666"
+    COR_GRAFICO_TEXTO = "#555555"
+    COR_GRAFICO_BORDA = "#c8c8c8"
+    COR_GRAFICO_BARRA = "#202020"
+    COR_GRAFICO_TEXTO_ESCURO = "#101820"
+    CORES_CURVAS_GRAFICO = (
+        "#0078d7",
+        "#c239b3",
+        "#10893e",
+        "#ff8c00",
+        "#744da9",
+        "#d13438",
+    )
+    COR_ERRO = "#ff8080"
+
     # Textos
     COR_TEXTO = "#ffffff"
     COR_TEXTO_SECUNDARIO = "#aab2c5"
