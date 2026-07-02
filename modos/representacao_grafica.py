@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import itertools
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -28,6 +28,18 @@ GRADE_TECLADO = (
     ("log", "1", "2", "3", "+"),
     ("ln", "+/-", "0", ",", "↵"),
 )
+
+ROTULOS_SEGUNDO_TECLADO = {
+    "x²": "x³",
+    "√x": "∛x",
+    "xʸ": "ʸ√x",
+    "10ˣ": "2ˣ",
+    "log": "logᵧx",
+    "ln": "eˣ",
+}
+
+LARGURA_MINIMA_GRAFICO = 1e-6
+LARGURA_MAXIMA_GRAFICO = 1e9
 
 
 @dataclass
@@ -624,6 +636,9 @@ class PainelGrafico(tk.Frame):
             levels=[0],
             colors=[item.cor],
             linewidths=max(1.0, self.controlador.espessura_linha.get() - 0.5),
+            linestyles=(
+                "--" if item.compilada.operador in {"<", ">"} else "-"
+            ),
         )
 
     # ==========================================================
@@ -701,6 +716,22 @@ class PainelGrafico(tk.Frame):
 
         nova_largura = (xmax - xmin) * fator
         nova_altura = (ymax - ymin) * fator
+        if (
+            not np.isfinite(nova_largura)
+            or not np.isfinite(nova_altura)
+            or nova_largura <= 0
+            or nova_altura <= 0
+        ):
+            return
+
+        nova_largura = min(
+            max(nova_largura, LARGURA_MINIMA_GRAFICO),
+            LARGURA_MAXIMA_GRAFICO,
+        )
+        nova_altura = min(
+            max(nova_altura, LARGURA_MINIMA_GRAFICO),
+            LARGURA_MAXIMA_GRAFICO,
+        )
 
         self.controlador.xlim = [
             cx - nova_largura / 2,
@@ -811,11 +842,18 @@ class PainelGrafico(tk.Frame):
         if not caminho:
             return
 
-        self.figura.savefig(
-            caminho,
-            dpi=160,
-            facecolor=self.figura.get_facecolor(),
-        )
+        try:
+            self.figura.savefig(
+                caminho,
+                dpi=160,
+                facecolor=self.figura.get_facecolor(),
+            )
+        except Exception as exc:
+            messagebox.showerror(
+                "Exportar gráfico",
+                f"Não foi possível salvar a imagem.\n{exc}",
+                parent=self,
+            )
 
     # ==========================================================
     # CONFIGURAÇÕES
@@ -858,6 +896,7 @@ class PainelGrafico(tk.Frame):
             "Y-Mín.": tk.StringVar(value=f"{self.controlador.ylim[0]:g}"),
             "Y-Máx.": tk.StringVar(value=f"{self.controlador.ylim[1]:g}"),
         }
+        self.entradas_limites: dict[str, tk.Entry] = {}
         self.label_erro_config = tk.Label(
             painel,
             text="",
@@ -900,6 +939,7 @@ class PainelGrafico(tk.Frame):
                 padx=(4, 8),
                 pady=3,
             )
+            self.entradas_limites[rotulo] = entrada
             entrada.bind("<Return>", lambda _e: self._aplicar_limites())
             entrada.bind("<FocusOut>", lambda _e: self._aplicar_limites())
 
@@ -992,25 +1032,65 @@ class PainelGrafico(tk.Frame):
             ).pack(anchor="w")
 
     def _aplicar_limites(self) -> None:
-        try:
-            xmin = float(self.vars_limites["X-Mín."].get().replace(",", "."))
-            xmax = float(self.vars_limites["X-Máx."].get().replace(",", "."))
-            ymin = float(self.vars_limites["Y-Mín."].get().replace(",", "."))
-            ymax = float(self.vars_limites["Y-Máx."].get().replace(",", "."))
-        except ValueError:
-            self.label_erro_config.config(text="Use apenas valores numéricos.")
+        valores: dict[str, float] = {}
+        campos_invalidos: set[str] = set()
+
+        for rotulo, variavel in self.vars_limites.items():
+            texto = variavel.get().strip().replace(",", ".")
+            try:
+                valor = float(texto)
+            except ValueError:
+                campos_invalidos.add(rotulo)
+                continue
+
+            if not np.isfinite(valor):
+                campos_invalidos.add(rotulo)
+                continue
+
+            valores[rotulo] = valor
+
+        if campos_invalidos:
+            self._marcar_campos_limite(campos_invalidos)
+            self.label_erro_config.config(text="Use apenas valores numéricos finitos.")
             return
 
+        xmin = valores["X-Mín."]
+        xmax = valores["X-Máx."]
+        ymin = valores["Y-Mín."]
+        ymax = valores["Y-Máx."]
+
         if xmin >= xmax or ymin >= ymax:
+            campos_invalidos = set()
+            if xmin >= xmax:
+                campos_invalidos.update(("X-Mín.", "X-Máx."))
+            if ymin >= ymax:
+                campos_invalidos.update(("Y-Mín.", "Y-Máx."))
+            self._marcar_campos_limite(campos_invalidos)
             self.label_erro_config.config(
                 text="O mínimo deve ser menor que o máximo."
             )
             return
 
+        self._marcar_campos_limite(set())
         self.label_erro_config.config(text="")
         self.controlador.xlim = [xmin, xmax]
         self.controlador.ylim = [ymin, ymax]
         self.redesenhar()
+
+    def _marcar_campos_limite(self, campos_invalidos: set[str]) -> None:
+        for rotulo, entrada in getattr(self, "entradas_limites", {}).items():
+            entrada.config(
+                highlightbackground=(
+                    Tema.COR_ERRO
+                    if rotulo in campos_invalidos
+                    else Tema.COR_BOTAO_HOVER
+                ),
+                highlightcolor=(
+                    Tema.COR_ERRO
+                    if rotulo in campos_invalidos
+                    else Tema.COR_BOTAO_IGUAL
+                ),
+            )
 
     def _fechar_config_ao_clicar_fora(self, evento: tk.Event) -> None:
         if self.painel_config is None:
@@ -1316,6 +1396,9 @@ class TecladoMatematico(tk.Frame):
         super().__init__(parent, bg=Tema.COR_FUNDO)
         self.controlador = controlador
         self.menu_aberto: tk.Frame | None = None
+        self.bind_clique_fora: str | None = None
+        self.bind_escape: str | None = None
+        self.botoes_segundo: dict[str, tk.Button] = {}
         self._configurar_layout()
         self._criar_interface()
 
@@ -1366,10 +1449,12 @@ class TecladoMatematico(tk.Frame):
                 )
                 if texto == "2nd":
                     self.botao_segundo = botao
+                elif texto in ROTULOS_SEGUNDO_TECLADO:
+                    self.botoes_segundo[texto] = botao
 
     def _criar_botao(self, parent: tk.Widget, texto: str) -> tk.Button:
         cor = Tema.COR_BOTAO_IGUAL if texto == "↵" else Tema.COR_BOTAO
-        return tk.Button(
+        botao = tk.Button(
             parent,
             text=texto,
             bg=cor,
@@ -1383,8 +1468,9 @@ class TecladoMatematico(tk.Frame):
             bd=0,
             highlightthickness=0,
             cursor="hand2",
-            command=lambda valor=texto: self._acionar(valor),
         )
+        botao.config(command=lambda b=botao: self._acionar(b.cget("text")))
+        return botao
 
     def _acionar(self, valor: str) -> None:
         self.fechar_menu()
@@ -1409,13 +1495,19 @@ class TecladoMatematico(tk.Frame):
 
         templates = {
             "x²": ("^2", 0),
+            "x³": ("^3", 0),
             "1/x": ("1/()", -1),
             "|x|": ("abs()", -1),
             "√x": ("sqrt()", -1),
+            "∛x": ("root(,3)", -3),
             "xʸ": ("^()", -1),
+            "ʸ√x": ("root(,)", -2),
             "10ˣ": ("10^()", -1),
+            "2ˣ": ("2^()", -1),
             "log": ("log()", -1),
+            "logᵧx": ("log(,)", -2),
             "ln": ("ln()", -1),
+            "eˣ": ("exp()", -1),
             "×": ("×", 0),
             "÷": ("÷", 0),
             "−": ("−", 0),
@@ -1434,6 +1526,15 @@ class TecladoMatematico(tk.Frame):
             fg=Tema.COR_GRAFICO_TEXTO_ESCURO if ativo else Tema.COR_TEXTO,
         )
 
+        for rotulo_base, botao in self.botoes_segundo.items():
+            botao.config(
+                text=(
+                    ROTULOS_SEGUNDO_TECLADO[rotulo_base]
+                    if ativo
+                    else rotulo_base
+                )
+            )
+
     def _abrir_menu(self, nome: str, coluna: int) -> None:
         self.fechar_menu()
 
@@ -1443,12 +1544,16 @@ class TecladoMatematico(tk.Frame):
             bd=1,
             relief="solid",
         )
-        menu.place(relx=coluna / 3, y=28, relwidth=1 / 3)
+        if nome == "Trigonometria":
+            menu.place(relx=0, y=28, relwidth=1)
+        else:
+            menu.place(relx=coluna / 3, y=28, relwidth=1 / 3)
         menu.lift()
         self.menu_aberto = menu
 
         if nome == "Trigonometria":
             opcoes = self._opcoes_trigonometria()
+            colunas_menu = 4
         elif nome == "Desigualdades":
             opcoes = (
                 ("=", "="),
@@ -1458,6 +1563,7 @@ class TecladoMatematico(tk.Frame):
                 ("≥", "≥"),
                 ("≠", "≠"),
             )
+            colunas_menu = 3
         else:
             opcoes = (
                 ("abs", "abs()"),
@@ -1468,15 +1574,23 @@ class TecladoMatematico(tk.Frame):
                 ("max", "max(,)"),
                 ("mod", "mod(,)"),
             )
+            colunas_menu = 3
 
         for indice, (rotulo, inserir) in enumerate(opcoes):
-            linha = indice // 3
-            col = indice % 3
+            linha = indice // colunas_menu
+            col = indice % colunas_menu
+            ativo = (
+                inserir == "__2nd__"
+                and self.controlador.segundo_ativo
+            ) or (
+                inserir == "__hyp__"
+                and self.controlador.hiperbolico_ativo
+            )
             botao = tk.Button(
                 menu,
                 text=rotulo,
-                bg=Tema.COR_BOTAO,
-                fg=Tema.COR_TEXTO,
+                bg=Tema.COR_BOTAO_IGUAL if ativo else Tema.COR_BOTAO,
+                fg=Tema.COR_GRAFICO_TEXTO_ESCURO if ativo else Tema.COR_TEXTO,
                 activebackground=Tema.COR_BOTAO_HOVER,
                 activeforeground=Tema.COR_TEXTO,
                 font=("Segoe UI", 9),
@@ -1487,11 +1601,32 @@ class TecladoMatematico(tk.Frame):
             )
             botao.grid(row=linha, column=col, sticky="nsew", padx=1, pady=1)
 
-        for col in range(3):
+        for col in range(colunas_menu):
             menu.columnconfigure(col, weight=1)
 
+        janela = self.winfo_toplevel()
+        self.bind_clique_fora = janela.bind(
+            "<Button-1>",
+            self._fechar_menu_ao_clicar_fora,
+            add="+",
+        )
+        self.bind_escape = janela.bind(
+            "<Escape>",
+            lambda _e: self.fechar_menu(),
+            add="+",
+        )
+
     def _opcoes_trigonometria(self) -> tuple[tuple[str, str], ...]:
-        if self.controlador.hiperbolico_ativo:
+        if self.controlador.hiperbolico_ativo and self.controlador.segundo_ativo:
+            funcoes = (
+                ("asinh", "asinh()"),
+                ("acosh", "acosh()"),
+                ("atanh", "atanh()"),
+                ("asech", "asech()"),
+                ("acsch", "acsch()"),
+                ("acoth", "acoth()"),
+            )
+        elif self.controlador.hiperbolico_ativo:
             funcoes = (
                 ("sinh", "sinh()"),
                 ("cosh", "cosh()"),
@@ -1502,12 +1637,12 @@ class TecladoMatematico(tk.Frame):
             )
         elif self.controlador.segundo_ativo:
             funcoes = (
-                ("asin", "asin()"),
-                ("acos", "acos()"),
-                ("atan", "atan()"),
-                ("sin", "sin()"),
-                ("cos", "cos()"),
-                ("tan", "tan()"),
+                ("sin⁻¹", "asin()"),
+                ("cos⁻¹", "acos()"),
+                ("tan⁻¹", "atan()"),
+                ("sec⁻¹", "asec()"),
+                ("csc⁻¹", "acsc()"),
+                ("cot⁻¹", "acot()"),
             )
         else:
             funcoes = (
@@ -1519,8 +1654,12 @@ class TecladoMatematico(tk.Frame):
                 ("cot", "cot()"),
             )
 
-        texto_hyp = "hyp ligado" if self.controlador.hiperbolico_ativo else "hyp"
-        return (("2nd", "__2nd__"), (texto_hyp, "__hyp__"), *funcoes)
+        return (
+            ("2nd", "__2nd__"),
+            *funcoes[:3],
+            ("hyp", "__hyp__"),
+            *funcoes[3:],
+        )
 
     def _inserir_menu(self, texto: str) -> None:
         if texto == "__2nd__":
@@ -1543,7 +1682,28 @@ class TecladoMatematico(tk.Frame):
         self.controlador.editor.inserir_texto(texto, deslocamento)
         self.fechar_menu()
 
+    def _fechar_menu_ao_clicar_fora(self, evento: tk.Event) -> None:
+        if self.menu_aberto is None:
+            return
+
+        widget = evento.widget
+        while widget is not None:
+            if widget == self.menu_aberto:
+                return
+            widget = getattr(widget, "master", None)
+
+        self.fechar_menu()
+
     def fechar_menu(self) -> None:
+        janela = self.winfo_toplevel()
+        if self.bind_clique_fora is not None:
+            janela.unbind("<Button-1>", self.bind_clique_fora)
+            self.bind_clique_fora = None
+
+        if self.bind_escape is not None:
+            janela.unbind("<Escape>", self.bind_escape)
+            self.bind_escape = None
+
         if self.menu_aberto is not None and self.menu_aberto.winfo_exists():
             self.menu_aberto.destroy()
         self.menu_aberto = None

@@ -1,7 +1,8 @@
 import tkinter as tk
-from pathlib import Path
 
+from configuracoes import ConfiguracoesApp, TelaConfiguracoes
 from menu_lateral import MenuLateral
+from recursos import caminho_recurso
 from modos.padrao import CalculadoraPadrao
 from modos.cientifica import CalculadoraCientifica
 from modos.data import CalculadoraData
@@ -38,13 +39,24 @@ class Calculadora(tk.Frame):
     da pasta modos.
     """
 
-    def __init__(self, master: tk.Tk) -> None:
+    def __init__(
+        self,
+        master: tk.Tk,
+        configuracoes_app: ConfiguracoesApp | None = None,
+    ) -> None:
+        self.configuracoes_app = configuracoes_app or ConfiguracoesApp()
+        self.configuracoes_app.aplicar_preferencia()
+
         super().__init__(master, bg=Tema.COR_FUNDO)
         self.pack(fill="both", expand=True)
 
         self.nome_modo_atual = "Padrão"
+        self.nome_modo_antes_configuracoes = "Padrão"
         self.modo_atual: tk.Frame | None = None
         self.instancias_modos: dict[str, tk.Frame] = {}
+        self.tela_configuracoes: TelaConfiguracoes | None = None
+        self.configuracoes_abertas = False
+        self.icone_topo: tk.PhotoImage | None = None
 
         # Relaciona o nome exibido no menu à classe responsável pelo modo.
         # Novos modos devem ser adicionados aqui quando forem implementados.
@@ -220,11 +232,11 @@ class Calculadora(tk.Frame):
 
     def _criar_topo(self) -> None:
         """Cria o cabeçalho compartilhado por todos os modos."""
-        frame_topo = tk.Frame(
+        self.frame_topo = tk.Frame(
             self,
             bg=Tema.COR_TOPO,
         )
-        frame_topo.grid(
+        self.frame_topo.grid(
             row=0,
             column=0,
             sticky="ew",
@@ -232,13 +244,14 @@ class Calculadora(tk.Frame):
             pady=(8, 0),
         )
 
-        frame_topo.columnconfigure(0, weight=0)
-        frame_topo.columnconfigure(1, weight=1)
-        frame_topo.columnconfigure(2, weight=0)
-        frame_topo.columnconfigure(3, weight=0)
+        self.frame_topo.columnconfigure(0, weight=0)
+        self.frame_topo.columnconfigure(1, weight=0)
+        self.frame_topo.columnconfigure(2, weight=1)
+        self.frame_topo.columnconfigure(3, weight=0)
+        self.frame_topo.columnconfigure(4, weight=0)
 
-        botao_menu = tk.Button(
-            frame_topo,
+        self.botao_menu = tk.Button(
+            self.frame_topo,
             text="☰",
             bg=Tema.COR_TOPO,
             fg=Tema.COR_TEXTO,
@@ -251,15 +264,29 @@ class Calculadora(tk.Frame):
             cursor="hand2",
             command=self._alternar_menu,
         )
-        botao_menu.grid(
+        self.botao_menu.grid(
             row=0,
             column=0,
             sticky="w",
             padx=(0, 10),
         )
 
+        self.icone_topo = self._carregar_icone_topo()
+        self.label_icone_topo = tk.Label(
+            self.frame_topo,
+            image=self.icone_topo,
+            bg=Tema.COR_TOPO,
+        )
+        self.label_icone_topo.grid(
+            row=0,
+            column=1,
+            sticky="w",
+            padx=(0, 8),
+        )
+        self.label_icone_topo.grid_remove()
+
         self.label_modo = tk.Label(
-            frame_topo,
+            self.frame_topo,
             text=self.nome_modo_atual,
             bg=Tema.COR_TOPO,
             fg=Tema.COR_TEXTO,
@@ -267,23 +294,23 @@ class Calculadora(tk.Frame):
         )
         self.label_modo.grid(
             row=0,
-            column=1,
+            column=2,
             sticky="w",
         )
 
         self.frame_acoes_modo = tk.Frame(
-            frame_topo,
+            self.frame_topo,
             bg=Tema.COR_TOPO,
         )
         self.frame_acoes_modo.grid(
             row=0,
-            column=2,
+            column=3,
             sticky="e",
             padx=(4, 4),
         )
 
         self.botao_historico = tk.Button(
-            frame_topo,
+            self.frame_topo,
             text="↺",
             bg=Tema.COR_TOPO,
             fg=Tema.COR_TEXTO,
@@ -298,9 +325,20 @@ class Calculadora(tk.Frame):
         )
         self.botao_historico.grid(
             row=0,
-            column=3,
+            column=4,
             sticky="e",
         )
+
+    def _carregar_icone_topo(self) -> tk.PhotoImage | None:
+        caminho_icone = caminho_recurso("icons", "PyCalc_main.png")
+        if not caminho_icone.exists():
+            return None
+
+        imagem = tk.PhotoImage(file=str(caminho_icone))
+        fator = max(1, int(max(imagem.width(), imagem.height()) / 20))
+        if fator > 1:
+            imagem = imagem.subsample(fator, fator)
+        return imagem
 
     def _criar_area_modo(self) -> None:
         """Cria o contêiner onde o modo selecionado será exibido."""
@@ -316,6 +354,19 @@ class Calculadora(tk.Frame):
 
         self.area_modo.columnconfigure(0, weight=1)
         self.area_modo.rowconfigure(0, weight=1)
+
+        self.tela_configuracoes = TelaConfiguracoes(
+            self.area_modo,
+            preferencia_tema=self.configuracoes_app.preferencia_tema,
+            ao_alterar_tema=self._alterar_tema_configuracoes,
+            ao_voltar=self._voltar_configuracoes,
+        )
+        self.tela_configuracoes.grid(
+            row=0,
+            column=0,
+            sticky="nsew",
+        )
+        self.tela_configuracoes.grid_remove()
 
     def _criar_menu_lateral(self) -> None:
         """Cria o menu responsável pela seleção dos modos."""
@@ -355,6 +406,10 @@ class Calculadora(tk.Frame):
         """
         Recebe a opção escolhida no menu e carrega o modo correspondente.
         """
+        if nome_modo == "Configurações":
+            self._abrir_configuracoes()
+            return
+
         if nome_modo not in self.modos_disponiveis:
             print(f"{nome_modo} ainda não foi implementado")
 
@@ -377,6 +432,7 @@ class Calculadora(tk.Frame):
                 column=0,
                 sticky="nsew",
             )
+            modo.grid_remove()
             self.instancias_modos[nome_modo] = modo
 
         self.area_modo.update_idletasks()
@@ -384,16 +440,92 @@ class Calculadora(tk.Frame):
     def _carregar_modo(self, nome_modo: str) -> None:
         """Mostra o modo solicitado sem reconstruir o layout a cada troca."""
         self._fechar_paineis_modo_atual()
+        self.configuracoes_abertas = False
 
         self.modo_atual = self.instancias_modos[nome_modo]
+        self._exibir_frame_modo(self.modo_atual)
         self.modo_atual.tkraise()
 
         self.nome_modo_atual = nome_modo
         self.label_modo.config(text=nome_modo)
+        self._configurar_topo_modo()
         self._atualizar_acoes_modo()
         self._atualizar_botao_historico()
         self._notificar_modo_exibido()
         self._focar_visor_modo_atual()
+
+    def _abrir_configuracoes(self) -> None:
+        if self.tela_configuracoes is None:
+            return
+
+        self._fechar_paineis_modo_atual()
+
+        if not self.configuracoes_abertas:
+            self.nome_modo_antes_configuracoes = self.nome_modo_atual
+
+        self.configuracoes_abertas = True
+        self.modo_atual = self.tela_configuracoes
+        self._exibir_frame_modo(self.tela_configuracoes)
+        self.tela_configuracoes.atualizar_preferencia(
+            self.configuracoes_app.preferencia_tema
+        )
+        self.tela_configuracoes.tkraise()
+        self.tela_configuracoes.ao_exibir()
+
+        self._configurar_topo_configuracoes()
+
+    def _voltar_configuracoes(self) -> None:
+        destino = self.nome_modo_antes_configuracoes
+        if destino not in self.instancias_modos:
+            destino = "Padrão"
+
+        self._carregar_modo(destino)
+
+    def _configurar_topo_configuracoes(self) -> None:
+        self.botao_menu.config(
+            text="←",
+            command=self._voltar_configuracoes,
+            bg=Tema.COR_TOPO,
+            fg=Tema.COR_TEXTO,
+            activebackground=Tema.COR_BOTAO_HOVER,
+            activeforeground=Tema.COR_TEXTO,
+        )
+        self.label_icone_topo.grid()
+        self.label_modo.config(
+            text="Calculadora",
+            bg=Tema.COR_TOPO,
+            fg=Tema.COR_TEXTO,
+        )
+        self.frame_acoes_modo.grid_remove()
+        self.botao_historico.grid_remove()
+
+    def _configurar_topo_modo(self) -> None:
+        self.botao_menu.config(
+            text="☰",
+            command=self._alternar_menu,
+            bg=Tema.COR_TOPO,
+            fg=Tema.COR_TEXTO,
+            activebackground=Tema.COR_BOTAO_HOVER,
+            activeforeground=Tema.COR_TEXTO,
+        )
+        self.label_icone_topo.grid_remove()
+        self.label_modo.config(bg=Tema.COR_TOPO, fg=Tema.COR_TEXTO)
+        self.frame_acoes_modo.grid()
+
+    def _exibir_frame_modo(self, frame_visivel: tk.Frame) -> None:
+        for frame in self.instancias_modos.values():
+            if frame is not frame_visivel and frame.winfo_manager():
+                frame.grid_remove()
+
+        if (
+            self.tela_configuracoes is not None
+            and self.tela_configuracoes is not frame_visivel
+            and self.tela_configuracoes.winfo_manager()
+        ):
+            self.tela_configuracoes.grid_remove()
+
+        if not frame_visivel.winfo_manager():
+            frame_visivel.grid(row=0, column=0, sticky="nsew")
 
     def _notificar_modo_exibido(self) -> None:
         if self.modo_atual is None:
@@ -447,6 +579,77 @@ class Calculadora(tk.Frame):
         if callable(focar_visor):
             self.after_idle(focar_visor)
 
+    def _alterar_tema_configuracoes(self, preferencia: str) -> None:
+        cores_anteriores = Tema.cores_tema()
+        self.configuracoes_app.definir_tema(preferencia)
+        self.configuracoes_app.aplicar_preferencia()
+        self._atualizar_tema_global(cores_anteriores)
+
+    def _atualizar_tema_global(self, cores_anteriores: dict[str, str]) -> None:
+        cores_novas = Tema.cores_tema()
+        self.master.configure(bg=Tema.COR_FUNDO)
+        self._atualizar_widget_tema(self, cores_anteriores, cores_novas)
+
+        if self.configuracoes_abertas:
+            self._configurar_topo_configuracoes()
+        else:
+            self._configurar_topo_modo()
+            self.label_modo.config(text=self.nome_modo_atual)
+            self._atualizar_botao_historico()
+
+        for modo in self.instancias_modos.values():
+            grafico = getattr(modo, "grafico", None)
+            redesenhar = getattr(grafico, "redesenhar", None)
+            if callable(redesenhar):
+                redesenhar()
+
+        if self.tela_configuracoes is not None:
+            self.tela_configuracoes.atualizar_tema()
+
+    def _atualizar_widget_tema(
+        self,
+        widget: tk.Widget,
+        cores_anteriores: dict[str, str],
+        cores_novas: dict[str, str],
+    ) -> None:
+        mapa_cores = {
+            valor.lower(): cores_novas[chave]
+            for chave, valor in cores_anteriores.items()
+            if chave in cores_novas
+        }
+        opcoes = (
+            "background",
+            "foreground",
+            "activebackground",
+            "activeforeground",
+            "disabledforeground",
+            "insertbackground",
+            "selectbackground",
+            "selectforeground",
+            "highlightbackground",
+            "highlightcolor",
+            "troughcolor",
+        )
+
+        for opcao in opcoes:
+            try:
+                valor_atual = str(widget.cget(opcao)).lower()
+            except tk.TclError:
+                continue
+
+            nova_cor = mapa_cores.get(valor_atual)
+            if nova_cor is not None:
+                try:
+                    widget.config(**{opcao: nova_cor})
+                except tk.TclError:
+                    pass
+
+        if isinstance(widget, tk.Button):
+            widget._hover_ativo = False
+
+        for filho in widget.winfo_children():
+            self._atualizar_widget_tema(filho, cores_anteriores, cores_novas)
+
     def _destruir_modo_atual(self) -> None:
         """Fecha os painéis e remove o modo que está sendo exibido."""
         self._fechar_paineis_modo_atual()
@@ -486,14 +689,16 @@ class Calculadora(tk.Frame):
 
 def criar_janela() -> tuple[tk.Tk, tk.PhotoImage | None]:
     """Cria e configura a janela principal da aplicação."""
+    configuracoes_app = ConfiguracoesApp()
+    configuracoes_app.aplicar_preferencia()
+
     janela = tk.Tk()
     janela.title("Calculadora")
     janela.geometry("340x560")
     janela.minsize(320, 520)
     janela.configure(bg=Tema.COR_FUNDO)
 
-    pasta_projeto = Path(__file__).resolve().parent
-    caminho_icone = pasta_projeto / "icons" / "calculator.png"
+    caminho_icone = caminho_recurso("icons", "PyCalc_main.png")
 
     icone = None
 
@@ -501,7 +706,7 @@ def criar_janela() -> tuple[tk.Tk, tk.PhotoImage | None]:
         icone = tk.PhotoImage(file=str(caminho_icone))
         janela.iconphoto(True, icone)
 
-    Calculadora(janela)
+    Calculadora(janela, configuracoes_app)
 
     return janela, icone
 

@@ -1,7 +1,9 @@
 import tkinter as tk
 from collections.abc import Callable
+from pathlib import Path
 from time import perf_counter
 
+from recursos import caminho_recurso
 from tema import Tema
 
 
@@ -17,28 +19,161 @@ class MenuLateral:
     - controlar a rolagem pelo mouse.
     """
 
+    TAMANHO_ICONE_MENU = 24
+
+    # ÍCONE MODO PADRÃO
+    ICONE_PADRAO_MENU = "modo:padrao"
+    ICONE_PADRAO_FALLBACK = "▣"
+
+    # ÍCONE MODO CIENTÍFICO
+    ICONE_CIENTIFICO_MENU = "modo:cientifica"
+    ICONE_CIENTIFICO_FALLBACK = "⚗"
+
+    # ÍCONE MODO REPRESENTAÇÃO GRÁFICA
+    ICONE_GRAFICO_MENU = "modo:grafico"
+    ICONE_GRAFICO_FALLBACK = "⌁"
+
+    # ÍCONE MODO PROGRAMADOR
+    ICONE_PROGRAMADOR_MENU = "modo:programador"
+    ICONE_PROGRAMADOR_FALLBACK = "</>"
+
+    # ÍCONE MODO CÁLCULO DE DATA
+    ICONE_DATA_MENU = "modo:data"
+    ICONE_DATA_FALLBACK = "▦"
+
+    # ÍCONES DOS CONVERSORES
+    ICONE_MOEDA_MENU = "conversor:moeda"
+    ICONE_VOLUME_MENU = "conversor:volume"
+    ICONE_COMPRIMENTO_MENU = "conversor:comprimento"
+    ICONE_PESO_MENU = "conversor:peso"
+    ICONE_TEMPERATURA_MENU = "conversor:temperatura"
+    ICONE_ENERGIA_MENU = "conversor:energia"
+    ICONE_AREA_MENU = "conversor:area"
+    ICONE_VELOCIDADE_MENU = "conversor:velocidade"
+    ICONE_TEMPO_MENU = "conversor:tempo"
+    ICONE_POTENCIA_MENU = "conversor:potencia"
+    ICONE_DADOS_MENU = "conversor:dados"
+    ICONE_PRESSAO_MENU = "conversor:pressao"
+    ICONE_ANGULO_MENU = "conversor:angulo"
+
+    ICONES_FALLBACK = {
+        ICONE_PADRAO_MENU: "▣",
+        ICONE_CIENTIFICO_MENU: "⚗",
+        ICONE_GRAFICO_MENU: "⌁",
+        ICONE_PROGRAMADOR_MENU: "</>",
+        ICONE_DATA_MENU: "▦",
+        ICONE_MOEDA_MENU: "♧",
+        ICONE_VOLUME_MENU: "⬡",
+        ICONE_COMPRIMENTO_MENU: "▥",
+        ICONE_PESO_MENU: "⚖",
+        ICONE_TEMPERATURA_MENU: "🌡",
+        ICONE_ENERGIA_MENU: "⚡",
+        ICONE_AREA_MENU: "▱",
+        ICONE_VELOCIDADE_MENU: "✈",
+        ICONE_TEMPO_MENU: "◷",
+        ICONE_POTENCIA_MENU: "ϟ",
+        ICONE_DADOS_MENU: "▧",
+        ICONE_PRESSAO_MENU: "◒",
+        ICONE_ANGULO_MENU: "∠",
+    }
+
+    ICONES_POR_TEMA = {
+        ICONE_PADRAO_MENU: {
+            "escuro": "icons/modos_icons/dark_mode/01_padrao_dark_mode.png",
+            "claro": "icons/modos_icons/light_mode/01_padrao_light_mode.png",
+        },
+        ICONE_CIENTIFICO_MENU: {
+            "escuro": "icons/modos_icons/dark_mode/02_cientifica_dark_mode.png",
+            "claro": "icons/modos_icons/light_mode/02_cientifica_light_mode.png",
+        },
+        ICONE_GRAFICO_MENU: {
+            "escuro": "icons/modos_icons/dark_mode/03_representacao_grafica_dark_mode.png",
+            "claro": "icons/modos_icons/light_mode/03_representacao_grafica_light_mode.png",
+        },
+        ICONE_PROGRAMADOR_MENU: {
+            "escuro": "icons/modos_icons/dark_mode/04_programador_dark_mode.png",
+            "claro": "icons/modos_icons/light_mode/04_programador_light_mode.png",
+        },
+        ICONE_DATA_MENU: {
+            "escuro": "icons/modos_icons/dark_mode/05_data_dark_mode.png",
+            "claro": "icons/modos_icons/light_mode/05_data_light_mode.png",
+        },
+        ICONE_MOEDA_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/06_moeda_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/06_moeda_light_mode.png",
+        },
+        ICONE_VOLUME_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/07_volume_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/07_volume_light_mode.png",
+        },
+        ICONE_COMPRIMENTO_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/08_comprimento_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/08_comprimento_light_mode.png",
+        },
+        ICONE_PESO_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/09_peso_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/09_peso_light_mode.png",
+        },
+        ICONE_TEMPERATURA_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/10_temperatura_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/10_temperatura_light_mode.png",
+        },
+        ICONE_ENERGIA_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/11_energia_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/11_energia_light_mode.png",
+        },
+        ICONE_AREA_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/12_area_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/12_area_light_mode.png",
+        },
+        ICONE_VELOCIDADE_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/13_velocidade_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/13_velocidade_light_mode.png",
+        },
+        ICONE_TEMPO_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/14_tempo_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/14_tempo_light_mode.png",
+        },
+        ICONE_POTENCIA_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/15_potencia_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/15_potencia_light_mode.png",
+        },
+        ICONE_DADOS_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/16_dados_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/16_dados_light_mode.png",
+        },
+        ICONE_PRESSAO_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/17_pressao_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/17_pressao_light_mode.png",
+        },
+        ICONE_ANGULO_MENU: {
+            "escuro": "icons/conversores_icons/dark_mode/18_angulo_dark_mode.png",
+            "claro": "icons/conversores_icons/light_mode/18_angulo_light_mode.png",
+        },
+    }
+
     OPCOES_CALCULADORA = (
-        ("▣", "Padrão"),
-        ("⚗", "Científica"),
-        ("⌁", "Representação gráfica"),
-        ("</>", "Programador"),
-        ("▦", "Cálculo de data"),
+        (ICONE_PADRAO_MENU, "Padrão"),
+        (ICONE_CIENTIFICO_MENU, "Científica"),
+        (ICONE_GRAFICO_MENU, "Representação gráfica"),
+        (ICONE_PROGRAMADOR_MENU, "Programador"),
+        (ICONE_DATA_MENU, "Cálculo de data"),
     )
 
     OPCOES_CONVERSOR = (
-        ("♧", "Moeda"),
-        ("⬡", "Volume"),
-        ("▥", "Comprimento"),
-        ("⚖", "Peso e massa"),
-        ("🌡", "Temperatura"),
-        ("⚡", "Energia"),
-        ("▱", "Área"),
-        ("✈", "Velocidade"),
-        ("◷", "Tempo"),
-        ("ϟ", "Potência"),
-        ("▧", "Dados"),
-        ("◒", "Pressão"),
-        ("∠", "Ângulo"),
+        (ICONE_MOEDA_MENU, "Moeda"),
+        (ICONE_VOLUME_MENU, "Volume"),
+        (ICONE_COMPRIMENTO_MENU, "Comprimento"),
+        (ICONE_PESO_MENU, "Peso e massa"),
+        (ICONE_TEMPERATURA_MENU, "Temperatura"),
+        (ICONE_ENERGIA_MENU, "Energia"),
+        (ICONE_AREA_MENU, "Área"),
+        (ICONE_VELOCIDADE_MENU, "Velocidade"),
+        (ICONE_TEMPO_MENU, "Tempo"),
+        (ICONE_POTENCIA_MENU, "Potência"),
+        (ICONE_DADOS_MENU, "Dados"),
+        (ICONE_PRESSAO_MENU, "Pressão"),
+        (ICONE_ANGULO_MENU, "Ângulo"),
     )
 
     def __init__(
@@ -72,6 +207,7 @@ class MenuLateral:
         self.barra_rolagem: tk.Canvas | None = None
         self.indicador_rolagem: int | None = None
         self.deslocamento_arraste_barra = 0
+        self.imagens_menu: list[tk.PhotoImage] = []
 
         self.bind_mousewheel_id: str | None = None
         self.bind_scroll_up_id: str | None = None
@@ -519,6 +655,9 @@ class MenuLateral:
         icone: str,
         nome: str,
     ) -> None:
+        imagem = self._carregar_icone_imagem_menu(icone)
+        texto = f"    {nome}" if imagem is not None else f"{self._icone_texto(icone)}    {nome}"
+
         cor_fundo = (
             Tema.COR_MENU_HOVER
             if nome == self.label_modo.cget("text")
@@ -527,7 +666,7 @@ class MenuLateral:
 
         botao = tk.Button(
             container,
-            text=f"{icone}    {nome}",
+            text=texto,
             bg=cor_fundo,
             fg=Tema.COR_TEXTO,
             activebackground=Tema.COR_MENU_HOVER,
@@ -542,7 +681,89 @@ class MenuLateral:
             cursor="hand2",
             command=lambda modo=nome: self._selecionar(modo),
         )
+
+        if imagem is not None:
+            botao.config(
+                image=imagem,
+                compound="left",
+            )
+
         botao.pack(fill="x", padx=6, pady=1)
+
+    def _carregar_icone_imagem_menu(self, icone: str) -> tk.PhotoImage | None:
+        if icone not in self.ICONES_POR_TEMA:
+            return None
+
+        caminho = self._caminho_icone_tema(icone)
+        if not caminho.exists():
+            if icone == self.ICONE_PADRAO_MENU:
+                return self._criar_icone_padrao_fallback()
+            return None
+        
+        try:
+            imagem = self._padronizar_icone_menu(
+                tk.PhotoImage(file=str(caminho))
+            )
+        except tk.TclError:
+            if icone == self.ICONE_PADRAO_MENU:
+                imagem = self._criar_icone_padrao_fallback()
+            else:
+                return None
+
+        self.imagens_menu.append(imagem)
+        return imagem
+
+    def _caminho_icone_tema(self, icone: str) -> Path:
+        tema_atual = "claro" if Tema.TEMA_ATUAL == "claro" else "escuro"
+        caminho_relativo = self.ICONES_POR_TEMA[icone][tema_atual]
+        return caminho_recurso(*Path(caminho_relativo).parts)
+
+    def _padronizar_icone_menu(self, imagem: tk.PhotoImage) -> tk.PhotoImage:
+        tamanho = self.TAMANHO_ICONE_MENU
+        if imagem.width() == tamanho and imagem.height() == tamanho:
+            return imagem
+
+        icone = tk.PhotoImage(width=tamanho, height=tamanho)
+        x = max(0, (tamanho - imagem.width()) // 2)
+        y = max(0, (tamanho - imagem.height()) // 2)
+        largura = min(imagem.width(), tamanho)
+        altura = min(imagem.height(), tamanho)
+        icone.tk.call(
+            icone,
+            "copy",
+            imagem,
+            "-from",
+            0,
+            0,
+            largura,
+            altura,
+            "-to",
+            x,
+            y,
+        )
+        return icone
+
+    def _criar_icone_padrao_fallback(self) -> tk.PhotoImage:
+        imagem = tk.PhotoImage(
+            width=self.TAMANHO_ICONE_MENU,
+            height=self.TAMANHO_ICONE_MENU,
+        )
+        cor = "#1192b3"
+
+        imagem.put(cor, to=(8, 5, 16, 6))
+        imagem.put(cor, to=(8, 18, 16, 19))
+        imagem.put(cor, to=(8, 5, 9, 19))
+        imagem.put(cor, to=(15, 5, 16, 19))
+        imagem.put(cor, to=(10, 7, 14, 9))
+
+        for y in (11, 14, 17):
+            for x in (9, 12, 15):
+                imagem.put(cor, to=(x, y, x + 1, y + 1))
+
+        return imagem
+
+    def _icone_texto(self, icone: str) -> str:
+        return self.ICONES_FALLBACK.get(icone, icone)
 
     # ==========================================================
     # SELEÇÃO DE MODOS
@@ -841,4 +1062,3 @@ class MenuLateral:
             return 4 * progresso ** 3
 
         return 1 - ((-2 * progresso + 2) ** 3) / 2
-
