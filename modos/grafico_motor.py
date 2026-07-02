@@ -31,9 +31,21 @@ FUNCOES_PERMITIDAS = {
     "asin": sp.asin,
     "acos": sp.acos,
     "atan": sp.atan,
+    "asec": sp.asec,
+    "acsc": sp.acsc,
+    "acot": sp.acot,
     "arcsin": sp.asin,
     "arccos": sp.acos,
     "arctan": sp.atan,
+    "arcsec": sp.asec,
+    "arccsc": sp.acsc,
+    "arccot": sp.acot,
+    "asinh": sp.asinh,
+    "acosh": sp.acosh,
+    "atanh": sp.atanh,
+    "asech": sp.asech,
+    "acsch": sp.acsch,
+    "acoth": sp.acoth,
     "sinh": sp.sinh,
     "cosh": sp.cosh,
     "tanh": sp.tanh,
@@ -44,13 +56,14 @@ FUNCOES_PERMITIDAS = {
     "csch": sp.csch,
     "coth": sp.coth,
     "sqrt": sp.sqrt,
+    "root": sp.Function("root"),
     "abs": sp.Abs,
     "floor": sp.floor,
     "ceil": sp.ceiling,
     "min": sp.Min,
     "max": sp.Max,
     "mod": sp.Mod,
-    "ln": sp.log,
+    "ln": sp.Function("ln"),
     "exp": sp.exp,
     # Mantido como função simbólica separada para que log seja base 10.
     "log": sp.Function("log"),
@@ -93,6 +106,8 @@ PADRAO_IDENTIFICADOR = re.compile(r"[A-Za-z]+")
 PADRAO_DECIMAL_COM_VIRGULA = re.compile(r"(?<=\d),(?=\d)")
 PADRAO_CARACTER_PROIBIDO = re.compile(r"['\"`\[\]{};:@_\\]")
 PADRAO_OPERADOR_RELACIONAL = re.compile(r"(<=|>=|!=|=|<|>)")
+FUNCOES_COM_VIRGULA_ARGUMENTO = {"log", "root", "min", "max", "mod"}
+MARCADOR_VIRGULA_ARGUMENTO = "\ue000"
 
 
 class ExpressaoInvalida(ValueError):
@@ -278,7 +293,9 @@ def normalizar_texto(texto: str) -> str:
     for antigo, novo in substituicoes.items():
         texto = texto.replace(antigo, novo)
 
+    texto = _proteger_virgulas_argumentos(texto)
     texto = PADRAO_DECIMAL_COM_VIRGULA.sub(".", texto)
+    texto = texto.replace(MARCADOR_VIRGULA_ARGUMENTO, ",")
     texto = re.sub(r"\s+", "", texto)
 
     for identificador in PADRAO_IDENTIFICADOR.findall(texto):
@@ -288,6 +305,42 @@ def normalizar_texto(texto: str) -> str:
             )
 
     return texto
+
+
+def _proteger_virgulas_argumentos(texto: str) -> str:
+    resultado: list[str] = []
+    pilha_funcoes_multiargumento: list[bool] = []
+
+    for indice, caractere in enumerate(texto):
+        if caractere == "(":
+            anterior = indice - 1
+            while anterior >= 0 and texto[anterior].isalpha():
+                anterior -= 1
+
+            nome_funcao = texto[anterior + 1 : indice]
+            pilha_funcoes_multiargumento.append(
+                nome_funcao in FUNCOES_COM_VIRGULA_ARGUMENTO
+            )
+            resultado.append(caractere)
+            continue
+
+        if caractere == ")":
+            if pilha_funcoes_multiargumento:
+                pilha_funcoes_multiargumento.pop()
+            resultado.append(caractere)
+            continue
+
+        if (
+            caractere == ","
+            and pilha_funcoes_multiargumento
+            and pilha_funcoes_multiargumento[-1]
+        ):
+            resultado.append(MARCADOR_VIRGULA_ARGUMENTO)
+            continue
+
+        resultado.append(caractere)
+
+    return "".join(resultado)
 
 
 def quebrar_descontinuidades(
@@ -392,6 +445,12 @@ def _modulo_numpy(unidade_angular: UnidadeAngular) -> dict[str, object]:
     def cot(valor):
         return 1 / np.tan(para_radianos(valor))
 
+    def log(valor, base=10):
+        return np.log(valor) / np.log(base)
+
+    def root(valor, indice):
+        return np.power(valor, 1 / indice)
+
     return {
         "sin": lambda valor: np.sin(para_radianos(valor)),
         "cos": lambda valor: np.cos(para_radianos(valor)),
@@ -399,6 +458,21 @@ def _modulo_numpy(unidade_angular: UnidadeAngular) -> dict[str, object]:
         "asin": lambda valor: de_radianos(np.arcsin(valor)),
         "acos": lambda valor: de_radianos(np.arccos(valor)),
         "atan": lambda valor: de_radianos(np.arctan(valor)),
+        "asec": lambda valor: de_radianos(np.arccos(1 / valor)),
+        "acsc": lambda valor: de_radianos(np.arcsin(1 / valor)),
+        "acot": lambda valor: de_radianos(np.arctan(1 / valor)),
+        "arcsin": lambda valor: de_radianos(np.arcsin(valor)),
+        "arccos": lambda valor: de_radianos(np.arccos(valor)),
+        "arctan": lambda valor: de_radianos(np.arctan(valor)),
+        "arcsec": lambda valor: de_radianos(np.arccos(1 / valor)),
+        "arccsc": lambda valor: de_radianos(np.arcsin(1 / valor)),
+        "arccot": lambda valor: de_radianos(np.arctan(1 / valor)),
+        "asinh": np.arcsinh,
+        "acosh": np.arccosh,
+        "atanh": np.arctanh,
+        "asech": lambda valor: np.arccosh(1 / valor),
+        "acsch": lambda valor: np.arcsinh(1 / valor),
+        "acoth": lambda valor: np.arctanh(1 / valor),
         "sinh": np.sinh,
         "cosh": np.cosh,
         "tanh": np.tanh,
@@ -409,6 +483,7 @@ def _modulo_numpy(unidade_angular: UnidadeAngular) -> dict[str, object]:
         "csch": lambda valor: 1 / np.sinh(valor),
         "coth": lambda valor: 1 / np.tanh(valor),
         "sqrt": np.sqrt,
+        "root": root,
         "Abs": np.abs,
         "abs": np.abs,
         "floor": np.floor,
@@ -418,7 +493,7 @@ def _modulo_numpy(unidade_angular: UnidadeAngular) -> dict[str, object]:
         "Max": np.maximum,
         "Mod": np.mod,
         "mod": np.mod,
-        "log": np.log10,
+        "log": log,
         "ln": np.log,
         "exp": np.exp,
     }

@@ -38,6 +38,42 @@ class GraficoMotorTestes(unittest.TestCase):
             np.array([1.0, 2.0, 3.0]),
         )
 
+    def test_funcoes_do_segundo_teclado_grafico(self):
+        xs = np.array([0.0])
+
+        self.assertAlmostEqual(
+            compilar_expressao("root(27,3)").avaliar_y(xs)[0],
+            3.0,
+        )
+        self.assertAlmostEqual(
+            compilar_expressao("log(8,2)").avaliar_y(xs)[0],
+            3.0,
+        )
+        self.assertAlmostEqual(
+            compilar_expressao("ln(e)").avaliar_y(xs)[0],
+            1.0,
+        )
+        self.assertAlmostEqual(
+            compilar_expressao("exp(1)").avaliar_y(xs)[0],
+            np.e,
+        )
+
+    def test_trigonometria_inversa_respeita_unidade_angular(self):
+        xs = np.array([0.0])
+
+        self.assertAlmostEqual(
+            compilar_expressao("asin(1)").avaliar_y(xs, "graus")[0],
+            90.0,
+        )
+        self.assertAlmostEqual(
+            compilar_expressao("asec(2)").avaliar_y(xs, "graus")[0],
+            60.0,
+        )
+        self.assertAlmostEqual(
+            compilar_expressao("acot(1)").avaliar_y(xs, "graus")[0],
+            45.0,
+        )
+
     def test_funcoes_do_teclado_virtual(self):
         xs = np.array([1.0, 3.0])
 
