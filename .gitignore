@@ -14,6 +14,8 @@ env/
 build/
 dist/
 release/
+BKP/
+bkp/
 packaging/installer/build/
 packaging/installer/*.sed
 
