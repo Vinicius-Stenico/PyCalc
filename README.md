@@ -475,7 +475,6 @@ python -m unittest discover
 - [ ] Documentação técnica mais detalhada por módulo.
 - [ ] Revisão de acessibilidade e navegação completa por teclado.
 - [ ] Melhor descrição de erros para entradas inválidas em todos os modos.
-- [ ] Revisar a organização de pastas auxiliares como `BKP/` e `experimentos/` antes da publicação.
 
 ### Ideias futuras
 
@@ -519,7 +518,7 @@ Ao relatar um problema, inclua quando possível:
 
 ## Autor
 
-Desenvolvido por **Vinícius Gabriel**.
+Desenvolvido por **Vinícius Stenico**.
 
 - GitHub: [Vinicius-Stenico](https://github.com/Vinicius-Stenico)
 - Repositório: [github.com/Vinicius-Stenico/pycalc](https://github.com/Vinicius-Stenico/pycalc)
