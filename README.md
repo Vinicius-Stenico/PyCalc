@@ -521,7 +521,7 @@ Ao relatar um problema, inclua quando possível:
 Desenvolvido por **Vinícius Stenico**.
 
 - GitHub: [Vinicius-Stenico](https://github.com/Vinicius-Stenico)
-- Repositório: [github.com/Vinicius-Stenico/pycalc](https://github.com/Vinicius-Stenico/pycalc)
+- Repositório: [github.com/Vinicius-Stenico/pycalc](https://github.com/Vinicius-Stenico/PyCalc)
 - LinkedIn: não informado no repositório.
 
 ## Licença
