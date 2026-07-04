@@ -526,9 +526,11 @@ Desenvolvido por **Vinícius Stenico**.
 
 ## Licença
 
-Este projeto ainda não possui um arquivo `LICENSE` nem uma licença definida no repositório.
+Este projeto não possui uma licença open source.
 
-Até que uma licença seja adicionada, todos os direitos estão reservados ao autor. Consulte o autor antes de copiar, modificar, redistribuir ou usar partes significativas do projeto.
+O código-fonte é disponibilizado publicamente apenas para fins de visualização, estudo e avaliação de portfólio. Não é permitido copiar, modificar, redistribuir, vender ou utilizar partes significativas deste projeto sem autorização prévia e por escrito do autor.
+
+Consulte o arquivo LICENSE para mais detalhes.
 
 ## Agradecimentos
 
