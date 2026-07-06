@@ -478,8 +478,6 @@ Esta seção lista apenas os atalhos principais. A referência completa fica em 
 | Abrir/fechar histórico | `Ctrl+H` |
 | Salvar/recuperar/limpar memória | `Ctrl+M`, `Ctrl+R`, `Ctrl+L` |
 | Somar/subtrair memória | `Ctrl+P`, `Ctrl+Q` |
-| Abrir modo Padrão | `Ctrl+Alt+1`, quando o foco não está no visor |
-| Abrir modo Científica | `Ctrl+Alt+2`, quando o foco não está no visor |
 | Alternar unidade angular no modo Científica | `F3`, `F4`, `F5` |
 
 ## Arquitetura
