@@ -8,17 +8,24 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Tkinter](https://img.shields.io/badge/Interface-Tkinter-0f766e)
-![Status](https://img.shields.io/badge/status-em%20desenvolvimento-f59e0b)
-![Licença](https://img.shields.io/badge/licen%C3%A7a-n%C3%A3o%20definida-lightgrey)
+![Versão](https://img.shields.io/badge/vers%C3%A3o-v1.0.0-2563eb)
+![Status](https://img.shields.io/badge/status-publicado%20e%20funcional-16a34a)
+![Licença](https://img.shields.io/badge/licen%C3%A7a-uso%20restrito-lightgrey)
 
 </div>
 
 > [!IMPORTANT]
-> O PyCalc está em desenvolvimento ativo. O repositório já contém modos de cálculo, conversores, tema, atalhos, testes e scripts de empacotamento, mas ainda pode receber ajustes antes de uma publicação estável.
+> O **PyCalc v1.0.0** está publicado e funcionando normalmente.  
+> O projeto segue em evolução com novas melhorias, ajustes visuais, ampliação de testes e refinamentos de empacotamento.
+
+> [!WARNING]
+> No Windows, o instalador pode ser bloqueado ou sinalizado pelo **Windows Defender / SmartScreen** por ainda não possuir assinatura digital de código.  
+> Isso pode acontecer com aplicativos independentes distribuídos fora da Microsoft Store, especialmente quando são projetos novos ou pouco conhecidos.  
+> Baixe o PyCalc apenas pelo repositório oficial do autor. Caso o Windows impeça a instalação, a alternativa recomendada é executar o projeto diretamente pelo código-fonte ou aguardar uma versão futura assinada digitalmente.
 
 ## Demonstração
 
-> Demonstração visual em preparação. Um screenshot ou GIF real da interface deve ser adicionado antes da release pública.
+> Demonstração visual em preparação. Screenshots ou GIFs reais da interface podem ser adicionados nesta seção para mostrar os modos, conversores, temas e principais recursos do PyCalc.
 
 ## Índice
 
@@ -27,8 +34,9 @@
 - [Tecnologias utilizadas](#tecnologias-utilizadas)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Requisitos](#requisitos)
-- [Instalação](#instalação)
-- [Como executar](#como-executar)
+- [Download e instalação](#download-e-instalação)
+- [Como executar pelo código-fonte](#como-executar-pelo-código-fonte)
+- [Aviso sobre Windows Defender e SmartScreen](#aviso-sobre-windows-defender-e-smartscreen)
 - [Builds e distribuição](#builds-e-distribuição)
 - [Exemplos de uso](#exemplos-de-uso)
 - [Atalhos de teclado](#atalhos-de-teclado)
@@ -47,7 +55,9 @@ O **PyCalc** é uma aplicação desktop de calculadora feita com **Python** e **
 
 A proposta do projeto é entregar uma experiência familiar para quem já usa calculadoras desktop, com navegação lateral, histórico, memória, atalhos de teclado e temas, mantendo o código organizado em módulos independentes. Essa separação permite evoluir cada modo sem concentrar toda a lógica em um único arquivo.
 
-Como portfólio, o PyCalc demonstra construção de interface gráfica, organização modular, tratamento de entradas matemáticas, conversão de unidades, integração com bibliotecas científicas, empacotamento para desktop e testes automatizados focados em partes críticas.
+Como projeto de portfólio, o PyCalc demonstra construção de interface gráfica, organização modular, tratamento de entradas matemáticas, conversão de unidades, integração com bibliotecas científicas, empacotamento para desktop e testes automatizados focados em partes críticas.
+
+A versão **v1.0.0** marca a primeira versão publicada do projeto, com os principais modos e conversores já implementados e funcionais.
 
 ## Funcionalidades
 
@@ -84,6 +94,7 @@ Como portfólio, o PyCalc demonstra construção de interface gráfica, organiza
 ### Execução e empacotamento
 
 - Execução direta por `calculadora.py`.
+- Versão **v1.0.0** publicada.
 - Scripts de empacotamento Windows via PyInstaller e Inno Setup.
 - Script de build Linux capaz de gerar pacote portátil, `.deb` ou AppImage conforme as ferramentas disponíveis.
 - Script auxiliar para chamar o build Linux a partir do WSL.
@@ -180,6 +191,13 @@ As pastas `build/`, `dist/` e `release/` podem existir localmente depois dos bui
 
 ## Requisitos
 
+### Para usar a versão instalada
+
+- Windows 10/11 64-bit para o instalador Windows.
+- Linux 64-bit para os pacotes Linux, quando disponíveis.
+
+### Para executar pelo código-fonte
+
 - Python 3.10 ou superior.
 - Tkinter disponível na instalação do Python.
 - Dependências listadas em `requirements.txt`.
@@ -197,11 +215,59 @@ Para verificar o Tkinter:
 python -m tkinter
 ```
 
-## Instalação
+## Download e instalação
+
+A versão publicada do projeto está disponível na seção de releases do repositório:
+
+```text
+https://github.com/Vinicius-Stenico/PyCalc/releases
+```
+
+### Windows
+
+Baixe o instalador da versão mais recente:
+
+```text
+PyCalc_Setup.exe
+```
+
+Depois, execute o instalador normalmente.
+
+> [!NOTE]
+> Caso o Windows Defender ou SmartScreen bloqueie a instalação, consulte a seção [Aviso sobre Windows Defender e SmartScreen](#aviso-sobre-windows-defender-e-smartscreen).
+
+### Linux
+
+Dependendo dos artefatos disponíveis na release, use uma das opções abaixo.
+
+#### Pacote `.deb`
 
 ```bash
-git clone https://github.com/Vinicius-Stenico/pycalc.git
-cd pycalc
+sudo apt install ./pycalc_1.0.0_amd64.deb
+```
+
+#### AppImage
+
+```bash
+chmod +x PyCalc-1.0.0-x86_64.AppImage
+./PyCalc-1.0.0-x86_64.AppImage
+```
+
+#### Versão portátil
+
+```bash
+tar -xzf PyCalc-1.0.0-linux-x86_64.tar.gz
+cd PyCalc
+./PyCalc
+```
+
+## Como executar pelo código-fonte
+
+Clone o repositório:
+
+```bash
+git clone https://github.com/Vinicius-Stenico/PyCalc.git
+cd PyCalc
 ```
 
 ### Ambiente virtual no Windows
@@ -211,6 +277,7 @@ python -m venv .venv
 .venv\Scripts\activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+python calculadora.py
 ```
 
 ### Ambiente virtual no Linux
@@ -220,25 +287,27 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-```
-
-## Como executar
-
-Na pasta raiz do projeto:
-
-```bash
-python calculadora.py
-```
-
-Em instalações Linux onde o comando principal é `python3`:
-
-```bash
 python3 calculadora.py
 ```
 
+## Aviso sobre Windows Defender e SmartScreen
+
+O instalador do PyCalc pode ser bloqueado ou sinalizado pelo **Windows Defender / SmartScreen** em algumas máquinas.
+
+Isso ocorre porque a versão atual ainda não possui um certificado de assinatura digital de código. Sem essa assinatura, o Windows pode tratar o instalador como um aplicativo desconhecido, mesmo que ele tenha sido gerado a partir do código deste repositório.
+
+Esse aviso não significa necessariamente que o programa esteja com problema, mas é uma proteção normal do Windows para executáveis novos, independentes ou pouco reconhecidos.
+
+Recomendações:
+
+- baixe o instalador somente pela página oficial de releases deste repositório;
+- não execute cópias recebidas por terceiros ou baixadas de fontes desconhecidas;
+- se preferir não instalar o executável, rode o projeto diretamente pelo código-fonte;
+- em versões futuras, o projeto pode receber assinatura digital para reduzir esse tipo de bloqueio.
+
 ## Builds e distribuição
 
-O projeto inclui scripts para gerar builds locais, mas esses artefatos ainda devem passar por validação manual antes de serem tratados como releases finais.
+A versão **v1.0.0** já foi publicada, mas o repositório também mantém scripts para gerar builds locais.
 
 ### Windows
 
@@ -266,6 +335,9 @@ Requisito adicional: **Inno Setup 6** instalado. O instalador é configurado par
 ```text
 release\PyCalc_Setup.exe
 ```
+
+> [!NOTE]
+> Builds locais gerados sem assinatura digital também podem acionar alertas do Windows Defender / SmartScreen.
 
 ### Linux
 
@@ -447,7 +519,7 @@ python -m unittest discover
 
 ## Roadmap
 
-### Implementado
+### Implementado na v1.0.0
 
 - [x] Estrutura modular da aplicação.
 - [x] Modo Padrão.
@@ -462,12 +534,14 @@ python -m unittest discover
 - [x] Atalhos de teclado documentados.
 - [x] Scripts de build para Windows e Linux.
 - [x] Testes automatizados para conversores e motor gráfico.
+- [x] Primeira release pública do projeto.
 
 ### Em desenvolvimento
 
 - [ ] Revisão visual fina dos modos mais densos.
 - [ ] Ampliação dos testes para modos de interface e fluxos de cálculo.
-- [ ] Validação manual dos builds antes de publicar releases.
+- [ ] Melhorias no empacotamento e distribuição.
+- [ ] Redução de alertas do Windows Defender / SmartScreen por meio de assinatura digital em versões futuras.
 - [ ] Capturas de tela ou GIFs reais para a documentação.
 
 ### Planejado
@@ -479,15 +553,28 @@ python -m unittest discover
 ### Ideias futuras
 
 - [ ] Persistência opcional de histórico e memória entre execuções.
-- [ ] Publicação de releases versionadas no GitHub.
 - [ ] Internacionalização.
 - [ ] Tema visual personalizável além dos presets claro/escuro.
+- [ ] Distribuição com assinatura digital de código.
 
 ## Contribuição
 
-Contribuições são bem-vindas, principalmente em testes, documentação, revisão visual, acessibilidade e validação de builds.
+Contribuições são bem-vindas, principalmente em:
 
-Fluxo sugerido:
+- correção de bugs;
+- melhorias na documentação;
+- testes;
+- sugestões de interface;
+- validação de instalação em diferentes sistemas;
+- melhorias de empacotamento.
+
+Este projeto, porém, **não é open source**. O código é disponibilizado publicamente para fins de visualização, estudo e avaliação de portfólio.
+
+Ao enviar uma issue, sugestão, pull request ou qualquer contribuição para este repositório, você concorda que a contribuição poderá ser analisada, adaptada e incorporada ao PyCalc pelo autor do projeto, sem que isso transfira a propriedade do projeto ou conceda permissão para copiar, vender, redistribuir ou reutilizar partes significativas do código sem autorização prévia.
+
+Contribuições aceitas passam a fazer parte do projeto PyCalc, respeitando os termos definidos no arquivo `LICENSE`. E podem receber créditos no README, em releases ou em um arquivo CONTRIBUTORS.md.
+
+Fluxo sugerido para contribuições:
 
 ```bash
 git checkout -b feature/nome-da-melhoria
@@ -503,7 +590,7 @@ Depois, abra um Pull Request explicando a motivação, as mudanças feitas e com
 
 Encontrou um erro ou tem uma sugestão? Abra uma issue:
 
-[Abrir issue no GitHub](https://github.com/Vinicius-Stenico/pycalc/issues/new)
+[Abrir issue no GitHub](https://github.com/Vinicius-Stenico/PyCalc/issues/new)
 
 Ao relatar um problema, inclua quando possível:
 
@@ -514,14 +601,15 @@ Ao relatar um problema, inclua quando possível:
 - comportamento esperado;
 - comportamento observado;
 - mensagens exibidas no terminal;
-- captura de tela, se ajudar.
+- captura de tela, se ajudar;
+- se o problema ocorreu na versão instalada, portátil ou executada pelo código-fonte.
 
 ## Autor
 
 Desenvolvido por **Vinícius Stenico**.
 
 - GitHub: [Vinicius-Stenico](https://github.com/Vinicius-Stenico)
-- Repositório: [github.com/Vinicius-Stenico/pycalc](https://github.com/Vinicius-Stenico/PyCalc)
+- Repositório: [github.com/Vinicius-Stenico/PyCalc](https://github.com/Vinicius-Stenico/PyCalc)
 - LinkedIn: não informado no repositório.
 
 ## Licença
