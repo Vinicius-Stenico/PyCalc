@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Perguntas ou dúvidas gerais
+    url: https://github.com/Vinicius-Stenico/PyCalc/discussions
+    about: Use esta opção para dúvidas, conversas ou ideias ainda não estruturadas.
