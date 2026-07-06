@@ -608,7 +608,7 @@ Desenvolvido por **Vinícius Stenico**.
 
 - GitHub: [Vinicius-Stenico](https://github.com/Vinicius-Stenico)
 - Repositório: [github.com/Vinicius-Stenico/PyCalc](https://github.com/Vinicius-Stenico/PyCalc)
-- LinkedIn: [Vinicius-Stenico](www.linkedin.com/in/viniciusstenico)
+- LinkedIn: [Vinicius-Stenico](https://www.linkedin.com/in/viniciusstenico)
 
 ## Licença
 
